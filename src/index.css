@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --mirqam-teal: #23949A;
+  --mirqam-teal-dark: #177E83;
+  --mirqam-teal-light: #84D6D8;
+  --mirqam-navy: #172740;
+  --mirqam-navy-dark: #0E1A29;
+  --mirqam-navy-card: #182B3E;
+  --mirqam-border: #C9DBDF;
+  --mirqam-border-dark: #314D60;
+}
+
+/* Light Theme Variables */
+html[data-theme="light"] {
+  --bg-main: radial-gradient(ellipse at 92% 0%, #23949a18, transparent 50%), radial-gradient(ellipse at 0 55%, #23949a0e, transparent 50%), #F1F6F7;
+  --glass-bg: rgba(255, 255, 255, 0.88);
+  --glass-solid: #F8FCFC;
+  --glass-border: #C9DBDF;
+  --glass-ink: #172740;
+  --glass-muted: #556B7D;
+  --control-bar-bg: rgba(255, 255, 255, 0.95);
+  --video-bg: #E2ECEE;
+}
+
+/* Dark Theme Variables */
+html[data-theme="dark"] {
+  --bg-main: radial-gradient(ellipse at 95% 0%, #23949a18, transparent 55%), radial-gradient(ellipse at 10% 90%, #17274033, transparent 50%), #0E1A29;
+  --glass-bg: rgba(24, 43, 62, 0.88);
+  --glass-solid: #182B3E;
+  --glass-border: #314D60;
+  --glass-ink: #ECF5F7;
+  --glass-muted: #AEC2CE;
+  --control-bar-bg: rgba(20, 36, 52, 0.92);
+  --video-bg: #122131;
+}
+
+body {
+  background: var(--bg-main);
+  color: var(--glass-ink);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Mirqam Glass Card */
+.mq-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 16px 40px rgba(14, 26, 41, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.mq-glass-solid {
+  background: var(--glass-solid);
+  border: 1px solid var(--glass-border);
+}
+
+/* Google Meet Active Speaker Glowing Outline */
+.speaking-glow {
+  box-shadow: 0 0 0 3px #23949A, 0 0 25px rgba(35, 148, 154, 0.45);
+}
+
+/* Reaction Floating Animation */
+@keyframes floatUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(0.6) rotate(0deg);
+  }
+  20% {
+    transform: translateY(-80px) scale(1.2) rotate(-8deg);
+  }
+  50% {
+    transform: translateY(-220px) scale(1) rotate(6deg);
+  }
+  80% {
+    opacity: 0.8;
+    transform: translateY(-380px) scale(0.95) rotate(-4deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-500px) scale(0.8) rotate(0deg);
+  }
+}
+
+.reaction-bubble {
+  position: absolute;
+  pointer-events: none;
+  animation: floatUp 3.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  z-index: 60;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(140, 175, 190, 0.25);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(35, 148, 154, 0.6);
+}
+
+/* Pulsing Hand Badge */
+@keyframes handBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+
+.hand-active {
+  animation: handBounce 1.5s infinite ease-in-out;
+}
