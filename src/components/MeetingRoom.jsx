@@ -30,19 +30,24 @@ export default function MeetingRoom() {
     screenStream,
     participants, 
     activeSidePanel, 
-    setActiveSidePanel,
     pinnedParticipantId, 
     setPinnedParticipantId,
     activeSpeakerId,
     reactions,
     captionsEnabled,
     currentSubtitle,
-    audioVolume,
     toggleScreenShare
   } = useMeeting();
 
   const localVideoRef = useRef(null);
   const screenVideoRef = useRef(null);
+
+  // If user entered with present=true from GreenRoom, trigger browser screen picker once
+  useEffect(() => {
+    if (localUser.isPresenting && !screenStream) {
+      toggleScreenShare();
+    }
+  }, []);
 
   // Bind local stream
   useEffect(() => {
@@ -58,22 +63,162 @@ export default function MeetingRoom() {
     }
   }, [screenStream]);
 
-  // Determine grid layout classes based on total tiles
-  const totalCount = participants.length + 1 + (localUser.isPresenting ? 1 : 0);
-
-  const getGridClasses = () => {
-    if (pinnedParticipantId || localUser.isPresenting) {
-      return 'flex flex-col lg:flex-row gap-3 h-full';
-    }
-    if (totalCount === 1) return 'grid grid-cols-1 max-w-4xl mx-auto h-full';
-    if (totalCount === 2) return 'grid grid-cols-1 md:grid-cols-2 gap-3 h-full max-w-6xl mx-auto';
-    if (totalCount <= 4) return 'grid grid-cols-1 sm:grid-cols-2 gap-3 h-full';
-    if (totalCount <= 6) return 'grid grid-cols-2 md:grid-cols-3 gap-3 h-full';
-    return 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 h-full';
-  };
-
+  const hasSpotlight = (localUser.isPresenting && screenStream) || pinnedParticipantId;
   const isLocalPinned = pinnedParticipantId === 'local';
   const pinnedRemote = participants.find(p => p.id === pinnedParticipantId);
+
+  // Participant Tile Renderer
+  const renderParticipantTile = (peer, isCompact = false) => {
+    const isPinned = pinnedParticipantId === peer.id;
+    const isSpeaking = activeSpeakerId === peer.id;
+
+    return (
+      <div
+        key={peer.id}
+        className={`relative rounded-2xl overflow-hidden bg-[#132235] border transition-all duration-200 flex items-center justify-center group ${
+          isCompact ? 'w-full h-36 shrink-0' : 'w-full h-full min-h-[180px]'
+        } ${
+          isSpeaking 
+            ? 'border-mirqam-teal shadow-[0_0_20px_rgba(35,148,154,0.5)] ring-2 ring-mirqam-teal' 
+            : 'border-slate-800 hover:border-slate-700'
+        }`}
+      >
+        {peer.video ? (
+          peer.videoUrl ? (
+            <video
+              src={peer.videoUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full relative overflow-hidden flex items-center justify-center">
+              <img 
+                src={peer.avatar} 
+                alt={peer.name} 
+                className="w-full h-full object-cover filter brightness-95" 
+              />
+            </div>
+          )
+        ) : (
+          <div className="flex flex-col items-center gap-2">
+            {peer.avatar ? (
+              <img 
+                src={peer.avatar} 
+                alt={peer.name} 
+                className={`${isCompact ? 'w-12 h-12' : 'w-20 h-20'} rounded-full object-cover border-2 border-slate-700 shadow-lg`}
+              />
+            ) : (
+              <div className={`${isCompact ? 'w-12 h-12 text-sm' : 'w-20 h-20 text-2xl'} rounded-full bg-gradient-to-br from-indigo-600 to-mirqam-navy flex items-center justify-center text-white font-bold border-2 border-indigo-400/40 shadow-lg`}>
+                {peer.name.charAt(0)}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Hand Raise Badge */}
+        {peer.handRaised && (
+          <div className="absolute top-2.5 end-2.5 p-1.5 rounded-full bg-amber-500 text-white shadow-lg hand-active z-10" title={t('handRaised')}>
+            <Hand className="w-3.5 h-3.5" />
+          </div>
+        )}
+
+        {/* Pin Tile Button */}
+        <button
+          onClick={() => setPinnedParticipantId(isPinned ? null : peer.id)}
+          className="absolute top-2.5 start-2.5 p-1.5 rounded-lg bg-black/60 text-white hover:bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          title={isPinned ? t('unpinTile') : t('pinTile')}
+        >
+          {isPinned ? <PinOff className="w-3.5 h-3.5 text-mirqam-teal" /> : <Pin className="w-3.5 h-3.5" />}
+        </button>
+
+        {/* Bottom Name & Mic Tag */}
+        <div className="absolute bottom-2.5 start-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-[11px] font-medium z-10">
+          <span className="truncate max-w-[120px]">{peer.name}</span>
+          {!peer.audio ? (
+            <MicOff className="w-3 h-3 text-rose-400" />
+          ) : (
+            <div className="flex items-center gap-0.5">
+              <span className="w-1 h-2 bg-emerald-400 rounded-full" />
+              <span className="w-1 h-3 bg-emerald-400 rounded-full" />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Local User Tile Renderer
+  const renderLocalTile = (isCompact = false) => {
+    return (
+      <div 
+        className={`relative rounded-2xl overflow-hidden bg-[#132235] border transition-all duration-200 flex items-center justify-center group ${
+          isCompact ? 'w-full h-36 shrink-0' : 'w-full h-full min-h-[180px]'
+        } ${
+          activeSpeakerId === 'local' 
+            ? 'border-mirqam-teal shadow-[0_0_20px_rgba(35,148,154,0.5)] ring-2 ring-mirqam-teal' 
+            : 'border-slate-800 hover:border-slate-700'
+        }`}
+      >
+        {localUser.video && localStream ? (
+          <video
+            ref={localVideoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-cover scale-x-[-1]"
+          />
+        ) : (
+          <div className="flex flex-col items-center gap-2">
+            <div className={`${isCompact ? 'w-12 h-12 text-sm' : 'w-20 h-20 text-2xl'} rounded-full bg-gradient-to-br from-mirqam-teal to-mirqam-navy flex items-center justify-center text-white font-bold border-2 border-mirqam-teal/40 shadow-lg`}>
+              {localUser.name ? localUser.name.charAt(0) : 'أ'}
+            </div>
+          </div>
+        )}
+
+        {/* Hand Raise Badge */}
+        {localUser.handRaised && (
+          <div className="absolute top-2.5 end-2.5 p-1.5 rounded-full bg-amber-500 text-white shadow-lg hand-active z-10" title={t('handRaised')}>
+            <Hand className="w-3.5 h-3.5" />
+          </div>
+        )}
+
+        {/* Pin Tile Button */}
+        <button
+          onClick={() => setPinnedParticipantId(isLocalPinned ? null : 'local')}
+          className="absolute top-2.5 start-2.5 p-1.5 rounded-lg bg-black/60 text-white hover:bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          title={isLocalPinned ? t('unpinTile') : t('pinTile')}
+        >
+          {isLocalPinned ? <PinOff className="w-3.5 h-3.5 text-mirqam-teal" /> : <Pin className="w-3.5 h-3.5" />}
+        </button>
+
+        {/* Bottom Name & Mic Tag */}
+        <div className="absolute bottom-2.5 start-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-[11px] font-medium z-10">
+          <span className="truncate max-w-[120px]">{localUser.name} ({t('you')})</span>
+          {!localUser.audio ? (
+            <MicOff className="w-3 h-3 text-rose-400" />
+          ) : (
+            <div className="flex items-center gap-0.5">
+              <span className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse" />
+              <span className="w-1 h-3 bg-emerald-400 rounded-full animate-pulse delay-75" />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Normal Grid Class calculation
+  const totalCount = participants.length + 1;
+  const getGridClasses = () => {
+    if (totalCount === 1) return 'grid grid-cols-1 max-w-4xl w-full mx-auto h-full max-h-[75vh]';
+    if (totalCount === 2) return 'grid grid-cols-1 md:grid-cols-2 gap-3.5 w-full h-full max-w-6xl mx-auto';
+    if (totalCount <= 4) return 'grid grid-cols-1 sm:grid-cols-2 gap-3.5 w-full h-full';
+    if (totalCount <= 6) return 'grid grid-cols-2 md:grid-cols-3 gap-3.5 w-full h-full';
+    return 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 w-full h-full';
+  };
 
   return (
     <div className="flex-1 flex flex-col h-screen overflow-hidden bg-[#0A1420] text-white relative">
@@ -116,165 +261,51 @@ export default function MeetingRoom() {
             </div>
           )}
 
-          {/* Videos Grid Container */}
-          <div className={`w-full h-full flex-1 ${getGridClasses()} items-center justify-center overflow-y-auto`}>
-            
-            {/* Screen Share Tile (if presenting) */}
-            {localUser.isPresenting && screenStream && (
-              <div className="flex-1 w-full h-full min-h-[300px] rounded-2xl overflow-hidden bg-black border-2 border-sky-500/60 relative flex items-center justify-center shadow-2xl">
-                <video
-                  ref={screenVideoRef}
-                  autoPlay
-                  playsInline
-                  className="w-full h-full object-contain"
-                />
-                <div className="absolute bottom-3 start-3 px-3 py-1.5 rounded-lg bg-black/70 backdrop-blur-md text-xs font-semibold text-sky-300 flex items-center gap-2">
-                  <Monitor className="w-3.5 h-3.5 text-sky-400" />
-                  <span>مشاركة الشاشة الحية (Screen Share)</span>
-                </div>
+          {/* SPOTLIGHT / SCREEN SHARE LAYOUT */}
+          {hasSpotlight ? (
+            <div className="flex-1 flex flex-col lg:flex-row gap-3 h-full overflow-hidden">
+              
+              {/* Primary Stage */}
+              <div className="flex-1 h-full min-h-[300px] rounded-2xl overflow-hidden bg-black border-2 border-sky-500/60 relative flex items-center justify-center shadow-2xl">
+                {localUser.isPresenting && screenStream ? (
+                  <>
+                    <video
+                      ref={screenVideoRef}
+                      autoPlay
+                      playsInline
+                      className="w-full h-full object-contain"
+                    />
+                    <div className="absolute bottom-3 start-3 px-3 py-1.5 rounded-lg bg-black/70 backdrop-blur-md text-xs font-semibold text-sky-300 flex items-center gap-2">
+                      <Monitor className="w-3.5 h-3.5 text-sky-400" />
+                      <span>مشاركة الشاشة الحية (Screen Share)</span>
+                    </div>
+                  </>
+                ) : isLocalPinned ? (
+                  renderLocalTile(false)
+                ) : pinnedRemote ? (
+                  renderParticipantTile(pinnedRemote, false)
+                ) : null}
               </div>
-            )}
 
-            {/* Local User Tile */}
-            <div 
-              className={`relative rounded-2xl overflow-hidden bg-[#132235] border transition-all duration-200 flex items-center justify-center group ${
-                isLocalPinned ? 'flex-1 h-full' : 'w-full h-full min-h-[160px]'
-              } ${
-                activeSpeakerId === 'local' 
-                  ? 'border-mirqam-teal shadow-[0_0_20px_rgba(35,148,154,0.5)] ring-2 ring-mirqam-teal' 
-                  : 'border-slate-800 hover:border-slate-700'
-              }`}
-            >
-              {localUser.video && localStream ? (
-                <video
-                  ref={localVideoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover scale-x-[-1]"
-                />
-              ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-mirqam-teal to-mirqam-navy flex items-center justify-center text-white text-2xl font-bold border-2 border-mirqam-teal/40 shadow-lg">
-                    {localUser.name ? localUser.name.charAt(0) : 'أ'}
-                  </div>
-                </div>
-              )}
+              {/* Sidebar Filmstrip of Attendees */}
+              <div className="lg:w-60 flex lg:flex-col gap-2.5 overflow-x-auto lg:overflow-y-auto shrink-0 max-h-full">
+                {/* Render local tile in strip if not in spotlight */}
+                {!isLocalPinned && renderLocalTile(true)}
 
-              {/* Hand Raise Badge */}
-              {localUser.handRaised && (
-                <div className="absolute top-3 end-3 p-2 rounded-full bg-amber-500 text-white shadow-lg hand-active z-10" title={t('handRaised')}>
-                  <Hand className="w-4 h-4" />
-                </div>
-              )}
-
-              {/* Pin Tile Button */}
-              <button
-                onClick={() => setPinnedParticipantId(isLocalPinned ? null : 'local')}
-                className="absolute top-3 start-3 p-1.5 rounded-lg bg-black/60 text-white hover:bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                title={isLocalPinned ? t('unpinTile') : t('pinTile')}
-              >
-                {isLocalPinned ? <PinOff className="w-4 h-4 text-mirqam-teal" /> : <Pin className="w-4 h-4" />}
-              </button>
-
-              {/* Bottom Name & Mic Tag */}
-              <div className="absolute bottom-3 start-3 flex items-center gap-2 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-xs font-medium z-10">
-                <span className="truncate max-w-[140px]">{localUser.name} ({t('you')})</span>
-                {!localUser.audio ? (
-                  <MicOff className="w-3.5 h-3.5 text-rose-400" />
-                ) : (
-                  <div className="flex items-center gap-0.5">
-                    <span className="w-1 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                    <span className="w-1 h-3 bg-emerald-400 rounded-full animate-pulse delay-75" />
-                  </div>
-                )}
+                {/* Render remote participants in strip */}
+                {participants
+                  .filter(p => p.id !== pinnedParticipantId)
+                  .map(p => renderParticipantTile(p, true))}
               </div>
+
             </div>
-
-            {/* Remote Participants Tiles */}
-            {participants.map((peer) => {
-              const isPinned = pinnedParticipantId === peer.id;
-              const isSpeaking = activeSpeakerId === peer.id;
-
-              return (
-                <div
-                  key={peer.id}
-                  className={`relative rounded-2xl overflow-hidden bg-[#132235] border transition-all duration-200 flex items-center justify-center group ${
-                    isPinned ? 'flex-1 h-full' : 'w-full h-full min-h-[160px]'
-                  } ${
-                    isSpeaking 
-                      ? 'border-mirqam-teal shadow-[0_0_20px_rgba(35,148,154,0.5)] ring-2 ring-mirqam-teal' 
-                      : 'border-slate-800 hover:border-slate-700'
-                  }`}
-                >
-                  {peer.video ? (
-                    peer.videoUrl ? (
-                      <video
-                        src={peer.videoUrl}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full relative overflow-hidden flex items-center justify-center">
-                        <img 
-                          src={peer.avatar} 
-                          alt={peer.name} 
-                          className="w-full h-full object-cover filter brightness-95" 
-                        />
-                      </div>
-                    )
-                  ) : (
-                    <div className="flex flex-col items-center gap-2">
-                      {peer.avatar ? (
-                        <img 
-                          src={peer.avatar} 
-                          alt={peer.name} 
-                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-slate-700 shadow-lg"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-indigo-600 to-mirqam-navy flex items-center justify-center text-white text-2xl font-bold border-2 border-indigo-400/40 shadow-lg">
-                          {peer.name.charAt(0)}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Hand Raise Badge */}
-                  {peer.handRaised && (
-                    <div className="absolute top-3 end-3 p-2 rounded-full bg-amber-500 text-white shadow-lg hand-active z-10" title={t('handRaised')}>
-                      <Hand className="w-4 h-4" />
-                    </div>
-                  )}
-
-                  {/* Pin Tile Button */}
-                  <button
-                    onClick={() => setPinnedParticipantId(isPinned ? null : peer.id)}
-                    className="absolute top-3 start-3 p-1.5 rounded-lg bg-black/60 text-white hover:bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                    title={isPinned ? t('unpinTile') : t('pinTile')}
-                  >
-                    {isPinned ? <PinOff className="w-4 h-4 text-mirqam-teal" /> : <Pin className="w-4 h-4" />}
-                  </button>
-
-                  {/* Bottom Name & Mic Tag */}
-                  <div className="absolute bottom-3 start-3 flex items-center gap-2 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-xs font-medium z-10">
-                    <span className="truncate max-w-[150px]">{peer.name}</span>
-                    {!peer.audio ? (
-                      <MicOff className="w-3.5 h-3.5 text-rose-400" />
-                    ) : (
-                      <div className="flex items-center gap-0.5">
-                        <span className="w-1 h-2 bg-emerald-400 rounded-full" />
-                        <span className="w-1 h-3 bg-emerald-400 rounded-full" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-
-          </div>
+          ) : (
+            /* STANDARD EQUAL GRID LAYOUT */
+            <div className={`flex-1 ${getGridClasses()} items-center justify-center overflow-y-auto`}>
+              {renderLocalTile(false)}
+              {participants.map(p => renderParticipantTile(p, false))}
+            </div>
+          )}
 
           {/* Live Subtitles Banner (Google Meet Captions) */}
           {captionsEnabled && currentSubtitle && (

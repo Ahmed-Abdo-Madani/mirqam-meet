@@ -699,11 +699,24 @@ export function MeetingProvider({ children }) {
 
     if (withSimulation) {
       setParticipants(DEFAULT_SIMULATED_PEERS);
+    } else {
+      setParticipants([]);
     }
 
     sounds.playJoinSound();
     setMeetingState('inmeeting');
   }, [roomId, localUser]);
+
+  const addSimulatedPeers = useCallback(() => {
+    setParticipants(prev => {
+      const nonSim = prev.filter(p => !p.id.startsWith('sim-'));
+      return [...nonSim, ...DEFAULT_SIMULATED_PEERS];
+    });
+  }, []);
+
+  const removeSimulatedPeers = useCallback(() => {
+    setParticipants(prev => prev.filter(p => !p.id.startsWith('sim-')));
+  }, []);
 
   const leaveMeeting = useCallback(() => {
     if (isRecording) {
@@ -797,6 +810,8 @@ export function MeetingProvider({ children }) {
         scheduleMeeting,
         goToGreenRoom,
         joinMeetingRoom,
+        addSimulatedPeers,
+        removeSimulatedPeers,
         leaveMeeting,
         rejoinMeeting,
         returnHome

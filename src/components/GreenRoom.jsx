@@ -48,6 +48,22 @@ export default function GreenRoom() {
     }
   }, [localStream]);
 
+  const [activeCount, setActiveCount] = useState(0);
+
+  // Check real attendees in the room
+  useEffect(() => {
+    if (roomId) {
+      fetch(`/api/room/${roomId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.participantsCount) {
+            setActiveCount(data.participantsCount);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [roomId]);
+
   const handleCopyLink = () => {
     const fullUrl = `${window.location.origin}/?room=${roomId}`;
     navigator.clipboard.writeText(fullUrl);
@@ -67,7 +83,7 @@ export default function GreenRoom() {
     if (present) {
       setLocalUser(prev => ({ ...prev, isPresenting: true }));
     }
-    joinMeetingRoom(true);
+    joinMeetingRoom(false); // Clean production room: only real participants!
   };
 
   const backgrounds = [
@@ -235,20 +251,21 @@ export default function GreenRoom() {
 
           {/* Attendees already in room summary */}
           <div className="p-4 rounded-2xl bg-slate-100 dark:bg-mirqam-navy-soft/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-3">
-            <div className="flex -space-x-2 rtl:space-x-reverse">
-              <div className="w-8 h-8 rounded-full bg-mirqam-teal text-white text-xs font-bold flex items-center justify-center border-2 border-slate-900">
-                ط
-              </div>
-              <div className="w-8 h-8 rounded-full bg-indigo-500 text-white text-xs font-bold flex items-center justify-center border-2 border-slate-900">
-                س
-              </div>
-              <div className="w-8 h-8 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center border-2 border-slate-900">
-                ع
-              </div>
+            <div className="w-9 h-9 rounded-full bg-mirqam-teal/20 text-mirqam-teal flex items-center justify-center shrink-0">
+              <Users className="w-5 h-5" />
             </div>
             <div className="flex flex-col text-xs text-slate-600 dark:text-slate-300">
-              <span className="font-bold">3 أعضاء متواجدون في المكالمة الآن</span>
-              <span className="text-slate-400 text-[11px]">طارق، سارة، عبدالله</span>
+              {activeCount > 0 ? (
+                <>
+                  <span className="font-bold">{activeCount} مشارك في المكالمة الآن</span>
+                  <span className="text-slate-400 text-[11px]">يمكنك الانضمام مباشرة للمحادثة</span>
+                </>
+              ) : (
+                <>
+                  <span className="font-bold">لا يوجد أحد في المكالمة بعد</span>
+                  <span className="text-slate-400 text-[11px]">ستكون أول المنضمين لهذا الاجتماع</span>
+                </>
+              )}
             </div>
           </div>
 
