@@ -37,7 +37,7 @@ const INITIAL_DATA = {
       titleEn: 'Customer Satisfaction & Delivery Rate',
       target: 95,
       unit: '%',
-      current: 96,
+      current: 100,
       category: 'quality',
       status: 'active'
     },
@@ -47,7 +47,7 @@ const INITIAL_DATA = {
       titleEn: 'Sales Commission Payout Rate',
       target: 100,
       unit: '%',
-      current: 90,
+      current: 100,
       category: 'finance',
       status: 'active'
     }
@@ -56,195 +56,43 @@ const INITIAL_DATA = {
     // 3 Official Main Employees
     {
       id: 'emp-1',
-      nameAr: 'أحمد',
-      nameEn: 'Ahmed',
-      roleAr: 'المدير التنفيذي والعمليات',
-      roleEn: 'Managing Director & Operations',
+      nameAr: 'مشاري ابو هليبة',
+      nameEn: 'Meshari Abu Hulaiba',
+      roleAr: 'إداري',
+      roleEn: 'Administrative Officer',
       type: 'core',
-      email: 'ahmed@mirqam.sa',
-      phone: '+966 50 123 4567',
+      email: 'meshari@mirqam.sa',
+      phone: '',
       avatar: '👔',
       isOfficial: true
     },
     {
       id: 'emp-2',
-      nameAr: 'طارق',
-      nameEn: 'Tariq',
-      roleAr: 'التقنية والمنتجات الرقمية',
-      roleEn: 'Tech Lead & Digital Products',
+      nameAr: 'وليد عطية',
+      nameEn: 'Waleed Atiah',
+      roleAr: 'إداري',
+      roleEn: 'Administrative Officer',
       type: 'core',
-      email: 'tariq@mirqam.sa',
-      phone: '+966 50 234 5678',
-      avatar: '💻',
+      email: 'waleed@mirqam.sa',
+      phone: '',
+      avatar: '👔',
       isOfficial: true
     },
     {
       id: 'emp-3',
-      nameAr: 'سارة',
-      nameEn: 'Sara',
-      roleAr: 'المالية والإدارة العامة',
-      roleEn: 'Finance & General Admin',
+      nameAr: 'أحمد عبد القادر',
+      nameEn: 'Ahmed Abdulqader',
+      roleAr: 'مطور برمجيات',
+      roleEn: 'Software Developer',
       type: 'core',
-      email: 'sara@mirqam.sa',
-      phone: '+966 50 345 6789',
-      avatar: '📊',
+      email: 'ahmed@mirqam.sa',
+      phone: '',
+      avatar: '💻',
       isOfficial: true
-    },
-    // Commission-based Sales Team (Paid per customer acquired)
-    {
-      id: 'sales-1',
-      nameAr: 'خالد المنصور',
-      nameEn: 'Khaled Al-Mansour',
-      roleAr: 'مسوق مبيعات (عمولات)',
-      roleEn: 'Sales Representative (Commission)',
-      type: 'sales',
-      email: 'khaled@mirqam.sa',
-      phone: '+966 55 111 2233',
-      commissionRate: 500, // SAR per customer
-      avatar: '🎯',
-      isOfficial: false
-    },
-    {
-      id: 'sales-2',
-      nameAr: 'ريم العتيبي',
-      nameEn: 'Reem Al-Otaibi',
-      roleAr: 'مسوقة مبيعات (عمولات)',
-      roleEn: 'Sales Representative (Commission)',
-      type: 'sales',
-      email: 'reem@mirqam.sa',
-      phone: '+966 55 222 3344',
-      commissionRate: 500,
-      avatar: '⭐',
-      isOfficial: false
-    },
-    {
-      id: 'sales-3',
-      nameAr: 'فهد الدوسري',
-      nameEn: 'Fahad Al-Dossari',
-      roleAr: 'مسوق مبيعات (عمولات)',
-      roleEn: 'Sales Representative (Commission)',
-      type: 'sales',
-      email: 'fahad@mirqam.sa',
-      phone: '+966 55 333 4455',
-      commissionRate: 500,
-      avatar: '🚀',
-      isOfficial: false
     }
   ],
-  tasks: [
-    {
-      id: 'task-101',
-      title: 'مراجعة عقود 5 عملاء جدد مع القسم المالي',
-      titleEn: 'Review contracts for 5 new onboarded clients with finance',
-      assignedTo: 'emp-3', // سارة
-      priority: 'urgent',
-      status: 'in_progress',
-      dueDate: '2026-10-18',
-      createdAt: '2026-10-14'
-    },
-    {
-      id: 'task-102',
-      title: 'تطوير صفحة الهبوط والحملة الترويجية لقطاع التجزئة',
-      titleEn: 'Develop retail landing page and promotional campaign',
-      assignedTo: 'emp-2', // طارق
-      priority: 'medium',
-      status: 'in_progress',
-      dueDate: '2026-10-20',
-      createdAt: '2026-10-13'
-    },
-    {
-      id: 'task-103',
-      title: 'التواصل مع 15 متجر مستهدف في الرياض',
-      titleEn: 'Outreach to 15 targeted retail stores in Riyadh',
-      assignedTo: 'sales-1', // خالد
-      priority: 'urgent',
-      status: 'todo',
-      dueDate: '2026-10-17',
-      createdAt: '2026-10-15'
-    },
-    {
-      id: 'task-104',
-      title: 'إغلاق الصفقة مع سلسلة متاجر الواحة',
-      titleEn: 'Close package deal with Al-Waha Store Chain',
-      assignedTo: 'sales-2', // ريم
-      priority: 'urgent',
-      status: 'in_progress',
-      dueDate: '2026-10-16',
-      createdAt: '2026-10-14'
-    },
-    {
-      id: 'task-105',
-      title: 'اعتماد خطة التوسع والتقرير المالي الأسبوعي',
-      titleEn: 'Approve weekly expansion roadmap and financial statement',
-      assignedTo: 'emp-1', // أحمد
-      priority: 'normal',
-      status: 'completed',
-      dueDate: '2026-10-15',
-      createdAt: '2026-10-12'
-    }
-  ],
-  sales: [
-    {
-      id: 'sale-201',
-      clientName: 'متجر دار الأناقة',
-      clientNameEn: 'Dar Al-Anaqah Store',
-      contactPhone: '+966 50 999 1122',
-      salesRepId: 'sales-1', // خالد
-      packageValue: 4500,
-      commissionAmount: 500,
-      status: 'paid', // 'pending' | 'approved' | 'paid'
-      notes: 'تم توقيع العقد وتسديد الفاتورة وصرف العمولة للمسوق',
-      date: '2026-10-10'
-    },
-    {
-      id: 'sale-202',
-      clientName: 'سوبرماركت الرائد',
-      clientNameEn: 'Al-Raed Supermarket',
-      contactPhone: '+966 50 888 2233',
-      salesRepId: 'sales-1', // خالد
-      packageValue: 6000,
-      commissionAmount: 600,
-      status: 'paid',
-      notes: 'باقة سنوية متكاملة',
-      date: '2026-10-11'
-    },
-    {
-      id: 'sale-203',
-      clientName: 'مقهى البن الراقي',
-      clientNameEn: 'Al-Bunn Boutique Cafe',
-      contactPhone: '+966 50 777 3344',
-      salesRepId: 'sales-2', // ريم
-      packageValue: 3500,
-      commissionAmount: 500,
-      status: 'approved',
-      notes: 'تم اعتماد السداد، جاهزة لصرف العمولة في الدفعة القادمة',
-      date: '2026-10-13'
-    },
-    {
-      id: 'sale-204',
-      clientName: 'مؤسسة أفق التقنية',
-      clientNameEn: 'Ofuq Tech Est.',
-      contactPhone: '+966 50 666 4455',
-      salesRepId: 'sales-2', // ريم
-      packageValue: 5000,
-      commissionAmount: 500,
-      status: 'paid',
-      notes: 'تم الصرف بنجاح',
-      date: '2026-10-12'
-    },
-    {
-      id: 'sale-205',
-      clientName: 'معارض صدى الأثاث',
-      clientNameEn: 'Sada Furniture Showrooms',
-      contactPhone: '+966 50 555 5566',
-      salesRepId: 'sales-3', // فهد
-      packageValue: 7500,
-      commissionAmount: 750,
-      status: 'pending',
-      notes: 'العميل بانتظار تفعيل الحساب لإتمام التحويل البنكي',
-      date: '2026-10-14'
-    }
-  ]
+  tasks: [],
+  sales: []
 };
 
 // In-memory cache + file sync
@@ -267,6 +115,12 @@ function loadDatabase() {
   return dbCache;
 }
 
+export function resetToProductionData() {
+  dbCache = JSON.parse(JSON.stringify(INITIAL_DATA));
+  saveDatabase();
+  return getWorkspace();
+}
+
 function saveDatabase() {
   try {
     const dir = path.dirname(DB_FILE);
@@ -283,23 +137,23 @@ export function getWorkspace() {
   const db = loadDatabase();
   
   // Calculate dynamic stats
-  const totalSales = db.sales.length;
-  const totalRevenue = db.sales.reduce((sum, s) => sum + (Number(s.packageValue) || 0), 0);
-  const totalCommissions = db.sales.reduce((sum, s) => sum + (Number(s.commissionAmount) || 0), 0);
-  const paidCommissions = db.sales
+  const totalSales = (db.sales || []).length;
+  const totalRevenue = (db.sales || []).reduce((sum, s) => sum + (Number(s.packageValue) || 0), 0);
+  const totalCommissions = (db.sales || []).reduce((sum, s) => sum + (Number(s.commissionAmount) || 0), 0);
+  const paidCommissions = (db.sales || [])
     .filter(s => s.status === 'paid')
     .reduce((sum, s) => sum + (Number(s.commissionAmount) || 0), 0);
   const pendingCommissions = totalCommissions - paidCommissions;
 
-  const totalTasks = db.tasks.length;
-  const completedTasks = db.tasks.filter(t => t.status === 'completed').length;
-  const urgentTasks = db.tasks.filter(t => t.priority === 'urgent' && t.status !== 'completed').length;
+  const totalTasks = (db.tasks || []).length;
+  const completedTasks = (db.tasks || []).filter(t => t.status === 'completed').length;
+  const urgentTasks = (db.tasks || []).filter(t => t.priority === 'urgent' && t.status !== 'completed').length;
 
   // Sales rep leaderboard
-  const salesRepsStats = db.team
+  const salesRepsStats = (db.team || [])
     .filter(member => member.type === 'sales')
     .map(rep => {
-      const repSales = db.sales.filter(s => s.salesRepId === rep.id);
+      const repSales = (db.sales || []).filter(s => s.salesRepId === rep.id);
       const repTotalClients = repSales.length;
       const repTotalCommission = repSales.reduce((sum, s) => sum + (Number(s.commissionAmount) || 0), 0);
       const repPaidCommission = repSales.filter(s => s.status === 'paid').reduce((sum, s) => sum + (Number(s.commissionAmount) || 0), 0);
@@ -315,7 +169,7 @@ export function getWorkspace() {
     .sort((a, b) => b.clientsCount - a.clientsCount);
 
   // Update dynamic goal-1 (target customers) with real count
-  const updatedGoals = db.goals.map(g => {
+  const updatedGoals = (db.goals || []).map(g => {
     if (g.id === 'goal-1') {
       return { ...g, current: totalSales, target: db.company.targetCustomers || 50 };
     }
@@ -350,6 +204,7 @@ export function updateCompanyDirection(updates) {
 
 export function createTask(taskData) {
   const db = loadDatabase();
+  if (!db.tasks) db.tasks = [];
   const newTask = {
     id: `task-${Date.now()}`,
     title: taskData.title,
@@ -368,6 +223,7 @@ export function createTask(taskData) {
 
 export function updateTask(taskId, updates) {
   const db = loadDatabase();
+  if (!db.tasks) db.tasks = [];
   const index = db.tasks.findIndex(t => t.id === taskId);
   if (index === -1) return null;
   db.tasks[index] = { ...db.tasks[index], ...updates };
@@ -377,6 +233,7 @@ export function updateTask(taskId, updates) {
 
 export function deleteTask(taskId) {
   const db = loadDatabase();
+  if (!db.tasks) db.tasks = [];
   db.tasks = db.tasks.filter(t => t.id !== taskId);
   saveDatabase();
   return getWorkspace();
@@ -384,6 +241,7 @@ export function deleteTask(taskId) {
 
 export function createSale(saleData) {
   const db = loadDatabase();
+  if (!db.sales) db.sales = [];
   const newSale = {
     id: `sale-${Date.now()}`,
     clientName: saleData.clientName,
@@ -403,6 +261,7 @@ export function createSale(saleData) {
 
 export function updateSale(saleId, updates) {
   const db = loadDatabase();
+  if (!db.sales) db.sales = [];
   const index = db.sales.findIndex(s => s.id === saleId);
   if (index === -1) return null;
   db.sales[index] = { ...db.sales[index], ...updates };
@@ -412,6 +271,7 @@ export function updateSale(saleId, updates) {
 
 export function deleteSale(saleId) {
   const db = loadDatabase();
+  if (!db.sales) db.sales = [];
   db.sales = db.sales.filter(s => s.id !== saleId);
   saveDatabase();
   return getWorkspace();
@@ -419,6 +279,7 @@ export function deleteSale(saleId) {
 
 export function addTeamMember(memberData) {
   const db = loadDatabase();
+  if (!db.team) db.team = [];
   const newMember = {
     id: `${memberData.type === 'core' ? 'emp' : 'sales'}-${Date.now()}`,
     nameAr: memberData.nameAr,

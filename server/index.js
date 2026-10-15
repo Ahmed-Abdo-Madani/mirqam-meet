@@ -44,19 +44,7 @@ function getOrCreateRoom(roomId) {
         }
       ],
       whiteboardPaths: [],
-      polls: [
-        {
-          id: 'poll-default-1',
-          question: 'ما هو رأيك في جودة الاتصال وتصميم مرقام ميت؟',
-          questionEn: 'How do you rate Mirqam Meet audio/video quality & design?',
-          options: [
-            { text: 'ممتازة جداً (Excellent)', votes: 3, voters: ['user-1', 'user-2', 'user-3'] },
-            { text: 'جيدة (Good)', votes: 0, voters: [] },
-            { text: 'تحتاج تحسين (Needs improvement)', votes: 0, voters: [] }
-          ],
-          createdBy: 'مرقام ميت'
-        }
-      ]
+      polls: []
     });
   }
   return rooms.get(roomId);

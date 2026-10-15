@@ -135,13 +135,15 @@ export default function TasksView() {
                 </option>
               ))}
             </optgroup>
-            <optgroup label={isAr ? 'فريق المبيعات (العمولات)' : 'Sales Team'}>
-              {salesTeam.map(m => (
-                <option key={m.id} value={m.id}>
-                  {isAr ? m.nameAr : m.nameEn} ({isAr ? 'مبيعات' : 'Sales'})
-                </option>
-              ))}
-            </optgroup>
+            {salesTeam.length > 0 && (
+              <optgroup label={isAr ? 'فريق المبيعات (العمولات)' : 'Sales Team'}>
+                {salesTeam.map(m => (
+                  <option key={m.id} value={m.id}>
+                    {isAr ? m.nameAr : m.nameEn} ({isAr ? 'مبيعات' : 'Sales'})
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </select>
         </div>
       </div>
@@ -345,13 +347,15 @@ export default function TasksView() {
                         </option>
                       ))}
                     </optgroup>
-                    <optgroup label={isAr ? 'فريق المبيعات والعمولات' : 'Sales Team (Commission)'}>
-                      {salesTeam.map(m => (
-                        <option key={m.id} value={m.id}>
-                          {m.avatar} {isAr ? m.nameAr : m.nameEn} ({isAr ? 'مسوق' : 'Sales Rep'})
-                        </option>
-                      ))}
-                    </optgroup>
+                    {salesTeam.length > 0 && (
+                      <optgroup label={isAr ? 'فريق المبيعات والعمولات' : 'Sales Team (Commission)'}>
+                        {salesTeam.map(m => (
+                          <option key={m.id} value={m.id}>
+                            {m.avatar} {isAr ? m.nameAr : m.nameEn} ({isAr ? 'مسوق' : 'Sales Rep'})
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
                   </select>
                 </div>
 

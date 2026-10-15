@@ -7,42 +7,7 @@ import { BackgroundProcessor } from '../utils/virtualBackground';
 const MeetingContext = createContext();
 
 // Mock team members for testing collaboration features
-const DEFAULT_SIMULATED_PEERS = [
-  {
-    id: 'sim-1',
-    name: 'طارق العتيبي (Tariq Al-Otaibi)',
-    role: 'رئيس المنتجات | Product Lead',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    audio: true,
-    video: true,
-    isHost: false,
-    handRaised: false,
-    audioLevel: 0,
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
-  },
-  {
-    id: 'sim-2',
-    name: 'سارة الشمري (Sarah Al-Shammari)',
-    role: 'مصممة واجهات | Senior UX Designer',
-    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
-    audio: false,
-    video: true,
-    isHost: false,
-    handRaised: false,
-    audioLevel: 0
-  },
-  {
-    id: 'sim-3',
-    name: 'عبدالله الغامدي (Abdullah Al-Ghamdi)',
-    role: 'مهندس ذكاء اصطناعي | AI Engineer',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    audio: true,
-    video: false,
-    isHost: false,
-    handRaised: false,
-    audioLevel: 0
-  }
-];
+const DEFAULT_SIMULATED_PEERS = [];
 
 export function MeetingProvider({ children }) {
   // Navigation & Meeting State

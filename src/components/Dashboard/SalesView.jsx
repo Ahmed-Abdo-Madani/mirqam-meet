@@ -25,7 +25,7 @@ export default function SalesView() {
   const { sales, team, stats, salesLeaderboard, company } = workspace;
   const salesTeam = team.filter(m => m.type === 'sales');
 
-  const defaultRepId = salesRepId || (salesTeam[0]?.id || '');
+  const defaultRepId = salesRepId || (salesTeam[0]?.id || team[0]?.id || '');
 
   const filteredSales = sales.filter(s => {
     if (filterRep !== 'all' && s.salesRepId !== filterRep) return false;
@@ -167,53 +167,62 @@ export default function SalesView() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-          {salesLeaderboard.map((rep, idx) => (
-            <div
-              key={rep.id}
-              className="p-3.5 sm:p-4 rounded-xl bg-slate-50 dark:bg-[#0A1420] border border-slate-200 dark:border-slate-800 relative overflow-hidden"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-2xl">{rep.avatar || '🎯'}</span>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                      {isAr ? rep.nameAr : rep.nameEn}
-                    </h4>
-                    <span className="text-[10px] text-mirqam-teal font-medium">
-                      {rep.commissionRate || 500} ر.س / {isAr ? 'عميل' : 'client'}
+        {salesLeaderboard.length === 0 ? (
+          <div className="py-8 text-center text-slate-400 text-xs">
+            <span className="text-2xl block mb-2">👥</span>
+            {isAr
+              ? 'لم يتم تسجيل مسوقين بعد — يمكنك إضافة مسوقين بالعمولة من تبويب "فريق العمل"'
+              : 'No sales reps added yet — you can add commissioned sales reps from Team Directory'}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+            {salesLeaderboard.map((rep, idx) => (
+              <div
+                key={rep.id}
+                className="p-3.5 sm:p-4 rounded-xl bg-slate-50 dark:bg-[#0A1420] border border-slate-200 dark:border-slate-800 relative overflow-hidden"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-2xl">{rep.avatar || '🎯'}</span>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                        {isAr ? rep.nameAr : rep.nameEn}
+                      </h4>
+                      <span className="text-[10px] text-mirqam-teal font-medium">
+                        {rep.commissionRate || 500} ر.س / {isAr ? 'عميل' : 'client'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {idx === 0 && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-500 border border-amber-500/30 shrink-0">
+                      🥇 {isAr ? 'المتصدر' : 'Top Rep'}
+                    </span>
+                  )}
+                </div>
+
+                <div className="mt-3.5 pt-3 border-t border-slate-200 dark:border-slate-800/80 space-y-1.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 dark:text-slate-400">{isAr ? 'العملاء المستقطبين:' : 'Clients Acquired:'}</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{rep.clientsCount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 dark:text-slate-400">{isAr ? 'إجمالي العمولات:' : 'Total Commission:'}</span>
+                    <span className="font-bold text-mirqam-teal">{rep.totalCommission.toLocaleString()} ر.س</span>
+                  </div>
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-emerald-600 dark:text-emerald-400">
+                      {isAr ? 'تم الصرف:' : 'Paid:'} {rep.paidCommission.toLocaleString()} ر.س
+                    </span>
+                    <span className="text-amber-500">
+                      {isAr ? 'معلق:' : 'Pending:'} {rep.pendingCommission.toLocaleString()} ر.س
                     </span>
                   </div>
                 </div>
-
-                {idx === 0 && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-500 border border-amber-500/30 shrink-0">
-                    🥇 {isAr ? 'المتصدر' : 'Top Rep'}
-                  </span>
-                )}
               </div>
-
-              <div className="mt-3.5 pt-3 border-t border-slate-200 dark:border-slate-800/80 space-y-1.5 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-slate-500 dark:text-slate-400">{isAr ? 'العملاء المستقطبين:' : 'Clients Acquired:'}</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{rep.clientsCount}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500 dark:text-slate-400">{isAr ? 'إجمالي العمولات:' : 'Total Commission:'}</span>
-                  <span className="font-bold text-mirqam-teal">{rep.totalCommission.toLocaleString()} ر.س</span>
-                </div>
-                <div className="flex justify-between text-[11px]">
-                  <span className="text-emerald-600 dark:text-emerald-400">
-                    {isAr ? 'تم الصرف:' : 'Paid:'} {rep.paidCommission.toLocaleString()} ر.س
-                  </span>
-                  <span className="text-amber-500">
-                    {isAr ? 'معلق:' : 'Pending:'} {rep.pendingCommission.toLocaleString()} ر.س
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Clients Acquisition Log Container */}
@@ -475,12 +484,25 @@ export default function SalesView() {
                     onChange={(e) => setSalesRepId(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-[#0A1420] border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-mirqam-teal"
                   >
-                    {salesTeam.map(rep => (
-                      <option key={rep.id} value={rep.id}>
-                        {rep.avatar} {isAr ? rep.nameAr : rep.nameEn} ({rep.commissionRate || 500} ر.س)
-                      </option>
-                    ))}
+                    {salesTeam.length > 0 ? (
+                      salesTeam.map(rep => (
+                        <option key={rep.id} value={rep.id}>
+                          {rep.avatar} {isAr ? rep.nameAr : rep.nameEn} ({rep.commissionRate || 500} ر.س)
+                        </option>
+                      ))
+                    ) : (
+                      team.map(m => (
+                        <option key={m.id} value={m.id}>
+                          {m.avatar} {isAr ? m.nameAr : m.nameEn} ({isAr ? m.roleAr : m.roleEn})
+                        </option>
+                      ))
+                    )}
                   </select>
+                  {salesTeam.length === 0 && (
+                    <p className="text-[10px] text-amber-500 mt-1">
+                      {isAr ? 'لم يتم تسجيل مسوقين بعد، يتم الإسناد للفريق الأساسي' : 'No sales reps registered yet; assigning to core team'}
+                    </p>
+                  )}
                 </div>
               </div>
 

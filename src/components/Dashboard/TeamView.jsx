@@ -175,73 +175,87 @@ export default function TeamView() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4">
-          {salesMembers.map(member => {
-            const clients = getMemberClientsCount(member.id);
-            const earnings = getMemberCommissions(member.id);
-            const activeTasks = getActiveTasksCount(member.id);
+        {salesMembers.length === 0 ? (
+          <div className="bg-white dark:bg-[#122033] p-6 sm:p-8 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-center text-slate-400 text-xs">
+            <span className="text-3xl block mb-2">🎯</span>
+            <p className="font-medium text-slate-600 dark:text-slate-300 mb-1">
+              {isAr ? 'لا يوجد مسوقين بالعمولة مسجلين حالياً' : 'No commission sales reps registered yet'}
+            </p>
+            <p className="text-[11px] text-slate-400">
+              {isAr
+                ? 'يمكنك إضافة مسوقين وتحديد نسبة العمولة لكل عميل مستقطب عبر زر "إضافة عضو جديد +"'
+                : 'You can add commission-based sales reps and define their rates via "Add Member +"'}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4">
+            {salesMembers.map(member => {
+              const clients = getMemberClientsCount(member.id);
+              const earnings = getMemberCommissions(member.id);
+              const activeTasks = getActiveTasksCount(member.id);
 
-            return (
-              <div
-                key={member.id}
-                className="bg-white dark:bg-[#122033] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs relative overflow-hidden"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl sm:text-3xl p-2 rounded-xl bg-slate-50 dark:bg-[#0A1420] border border-slate-100 dark:border-slate-800">
-                      {member.avatar || '🎯'}
+              return (
+                <div
+                  key={member.id}
+                  className="bg-white dark:bg-[#122033] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs relative overflow-hidden"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl sm:text-3xl p-2 rounded-xl bg-slate-50 dark:bg-[#0A1420] border border-slate-100 dark:border-slate-800">
+                        {member.avatar || '🎯'}
+                      </span>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                          {isAr ? member.nameAr : member.nameEn}
+                        </h4>
+                        <p className="text-xs text-slate-400 font-medium mt-0.5">
+                          {isAr ? member.roleAr : member.roleEn}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                      {isAr ? 'عمولات' : 'Commission'}
                     </span>
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                        {isAr ? member.nameAr : member.nameEn}
-                      </h4>
-                      <p className="text-xs text-slate-400 font-medium mt-0.5">
-                        {isAr ? member.roleAr : member.roleEn}
-                      </p>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2 text-xs">
+                    <div className="flex justify-between text-slate-500 dark:text-slate-400">
+                      <span>{isAr ? 'معدل العمولة لكل عميل:' : 'Commission Rate:'}</span>
+                      <span className="font-bold text-mirqam-teal">{member.commissionRate || 500} ر.س</span>
                     </div>
-                  </div>
-
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                    {isAr ? 'عمولات' : 'Commission'}
-                  </span>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2 text-xs">
-                  <div className="flex justify-between text-slate-500 dark:text-slate-400">
-                    <span>{isAr ? 'معدل العمولة لكل عميل:' : 'Commission Rate:'}</span>
-                    <span className="font-bold text-mirqam-teal">{member.commissionRate || 500} ر.س</span>
-                  </div>
-                  <div className="flex justify-between text-slate-500 dark:text-slate-400">
-                    <span>{isAr ? 'العملاء المستقطبين:' : 'Clients Acquired:'}</span>
-                    <span className="font-bold text-slate-900 dark:text-white">{clients}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-500 dark:text-slate-400">
-                    <span>{isAr ? 'إجمالي العمولات المستحقة:' : 'Total Commission:'}</span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">{earnings.toLocaleString()} ر.س</span>
-                  </div>
-                  <div className="flex justify-between text-slate-500 dark:text-slate-400">
-                    <span>{isAr ? 'المهام المسندة:' : 'Assigned Tasks:'}</span>
-                    <span>{activeTasks}</span>
-                  </div>
-
-                  {member.phone && (
-                    <div className="pt-2">
-                      <a
-                        href={`https://wa.me/${member.phone.replace(/[^0-9]/g, '')}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-full py-2 px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
-                      >
-                        <span>💬</span>
-                        <span>{isAr ? 'مراسلة واتساب' : 'WhatsApp'}</span>
-                      </a>
+                    <div className="flex justify-between text-slate-500 dark:text-slate-400">
+                      <span>{isAr ? 'العملاء المستقطبين:' : 'Clients Acquired:'}</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{clients}</span>
                     </div>
-                  )}
+                    <div className="flex justify-between text-slate-500 dark:text-slate-400">
+                      <span>{isAr ? 'إجمالي العمولات المستحقة:' : 'Total Commission:'}</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">{earnings.toLocaleString()} ر.س</span>
+                    </div>
+                    <div className="flex justify-between text-slate-500 dark:text-slate-400">
+                      <span>{isAr ? 'المهام المسندة:' : 'Assigned Tasks:'}</span>
+                      <span>{activeTasks}</span>
+                    </div>
+
+                    {member.phone && (
+                      <div className="pt-2">
+                        <a
+                          href={`https://wa.me/${member.phone.replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-full py-2 px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                        >
+                          <span>💬</span>
+                          <span>{isAr ? 'مراسلة واتساب' : 'WhatsApp'}</span>
+                        </a>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Add Member Modal */}
