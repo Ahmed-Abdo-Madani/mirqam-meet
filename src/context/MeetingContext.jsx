@@ -880,6 +880,31 @@ export function MeetingProvider({ children }) {
     setMeetingState('inmeeting');
   }, [roomId, localUser]);
 
+  const quickJoinMeeting = useCallback(async (code, nameOrObj) => {
+    if (!code) return;
+    const cleanCode = code.replace(/https?:\/\/[^/]+\//, '').trim();
+    setRoomId(cleanCode);
+    const resolvedName = typeof nameOrObj === 'string' ? nameOrObj : (nameOrObj?.name || localUser.name);
+    if (resolvedName) {
+      setLocalUser(prev => ({ ...prev, name: resolvedName }));
+    }
+    await initLocalStream({ audio: true, video: true });
+    if (socketRef.current) {
+      socketRef.current.emit('join-room', {
+        roomId: cleanCode,
+        user: {
+          name: resolvedName || 'عضو مرقام',
+          avatar: localUser.avatar,
+          audio: true,
+          video: true
+        }
+      });
+    }
+    setParticipants([]);
+    sounds.playJoinSound();
+    setMeetingState('inmeeting');
+  }, [initLocalStream, localUser]);
+
   const addSimulatedPeers = useCallback(() => {
     setParticipants(prev => {
       const nonSim = prev.filter(p => !p.id.startsWith('sim-'));
@@ -994,6 +1019,7 @@ export function MeetingProvider({ children }) {
         scheduleMeeting,
         goToGreenRoom,
         joinMeetingRoom,
+        quickJoinMeeting,
         addSimulatedPeers,
         removeSimulatedPeers,
         leaveMeeting,

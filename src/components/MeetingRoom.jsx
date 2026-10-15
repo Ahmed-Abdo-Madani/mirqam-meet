@@ -144,8 +144,10 @@ function RemoteParticipantTile({
 }
 
 export default function MeetingRoom() {
-  const { t } = useLanguage();
+  const { t, isRtl } = useLanguage();
   const { 
+    roomId,
+    returnHome,
     localUser, 
     localStream, 
     screenStream,
@@ -279,6 +281,32 @@ export default function MeetingRoom() {
 
   return (
     <div className="flex-1 flex flex-col h-screen overflow-hidden bg-[#0A1420] text-white relative">
+      {/* Top Header inside meeting */}
+      <div className="w-full px-4 py-2.5 bg-black/50 backdrop-blur-md border-b border-white/10 flex items-center justify-between z-30 shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-mirqam-teal to-teal-400 flex items-center justify-center font-bold text-white text-xs shadow-sm">
+            مـ
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-white tracking-wide">
+              {roomId === 'mirqam-team' ? (isRtl ? 'اجتماع فريق مرقام اليومي' : 'Mirqam Team Daily Huddle') : `${isRtl ? 'غرفة:' : 'Room:'} ${roomId}`}
+            </span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse me-1" />
+              {isRtl ? 'مباشر' : 'Live'}
+            </span>
+          </div>
+        </div>
+
+        <button
+          onClick={returnHome}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/15 transition-all hover:scale-[1.02]"
+          title={isRtl ? 'الرجوع إلى لوحة أعمال مرقام' : 'Return to Mirqam Workspace'}
+        >
+          <span>🏢</span>
+          <span>{isRtl ? 'لوحة الأعمال' : 'Workspace'}</span>
+        </button>
+      </div>
       
       {/* Floating Reactions Layer */}
       <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">

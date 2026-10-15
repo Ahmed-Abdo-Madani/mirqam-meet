@@ -1,0 +1,238 @@
+{
+  "company": {
+    "nameAr": "شركة مرقام التجارية",
+    "nameEn": "Mirqam Company Commercial",
+    "cr": "7055011105",
+    "directionAr": "التركيز خلال هذا الربع على التوسع السريع واستقطاب 50 عميل جديد في قطاع التجزئة والشركات الناشئة مع تقديم حلول رقمية وتسويقية متكاملة.",
+    "directionEn": "Focus this quarter on scaling rapidly and acquiring 50 new clients in retail & startups while delivering high-impact digital and marketing solutions.",
+    "targetCustomers": 50,
+    "quarter": "Q4 2026",
+    "defaultCommissionPerClient": 500
+  },
+  "meetingRoomConfig": {
+    "permanentRoomId": "mirqam-team",
+    "permanentRoomName": "غرفة مرقام الدائمة (Team Daily Huddle)"
+  },
+  "goals": [
+    {
+      "id": "goal-1",
+      "titleAr": "استقطاب العملاء الجدد للربع الحالي",
+      "titleEn": "Acquire New Clients (Quarter Target)",
+      "target": 50,
+      "unit": "عميل / Client",
+      "category": "sales",
+      "status": "active"
+    },
+    {
+      "id": "goal-2",
+      "titleAr": "نسبة رضا وجودة خدمة العملاء",
+      "titleEn": "Customer Satisfaction & Delivery Rate",
+      "target": 95,
+      "unit": "%",
+      "current": 96,
+      "category": "quality",
+      "status": "active"
+    },
+    {
+      "id": "goal-3",
+      "titleAr": "تسوية وصرف عمولات المبيعات فور التحصيل",
+      "titleEn": "Sales Commission Payout Rate",
+      "target": 100,
+      "unit": "%",
+      "current": 90,
+      "category": "finance",
+      "status": "active"
+    }
+  ],
+  "team": [
+    {
+      "id": "emp-1",
+      "nameAr": "أحمد",
+      "nameEn": "Ahmed",
+      "roleAr": "المدير التنفيذي والعمليات",
+      "roleEn": "Managing Director & Operations",
+      "type": "core",
+      "email": "ahmed@mirqam.sa",
+      "phone": "+966 50 123 4567",
+      "avatar": "👔",
+      "isOfficial": true
+    },
+    {
+      "id": "emp-2",
+      "nameAr": "طارق",
+      "nameEn": "Tariq",
+      "roleAr": "التقنية والمنتجات الرقمية",
+      "roleEn": "Tech Lead & Digital Products",
+      "type": "core",
+      "email": "tariq@mirqam.sa",
+      "phone": "+966 50 234 5678",
+      "avatar": "💻",
+      "isOfficial": true
+    },
+    {
+      "id": "emp-3",
+      "nameAr": "سارة",
+      "nameEn": "Sara",
+      "roleAr": "المالية والإدارة العامة",
+      "roleEn": "Finance & General Admin",
+      "type": "core",
+      "email": "sara@mirqam.sa",
+      "phone": "+966 50 345 6789",
+      "avatar": "📊",
+      "isOfficial": true
+    },
+    {
+      "id": "sales-1",
+      "nameAr": "خالد المنصور",
+      "nameEn": "Khaled Al-Mansour",
+      "roleAr": "مسوق مبيعات (عمولات)",
+      "roleEn": "Sales Representative (Commission)",
+      "type": "sales",
+      "email": "khaled@mirqam.sa",
+      "phone": "+966 55 111 2233",
+      "commissionRate": 500,
+      "avatar": "🎯",
+      "isOfficial": false
+    },
+    {
+      "id": "sales-2",
+      "nameAr": "ريم العتيبي",
+      "nameEn": "Reem Al-Otaibi",
+      "roleAr": "مسوقة مبيعات (عمولات)",
+      "roleEn": "Sales Representative (Commission)",
+      "type": "sales",
+      "email": "reem@mirqam.sa",
+      "phone": "+966 55 222 3344",
+      "commissionRate": 500,
+      "avatar": "⭐",
+      "isOfficial": false
+    },
+    {
+      "id": "sales-3",
+      "nameAr": "فهد الدوسري",
+      "nameEn": "Fahad Al-Dossari",
+      "roleAr": "مسوق مبيعات (عمولات)",
+      "roleEn": "Sales Representative (Commission)",
+      "type": "sales",
+      "email": "fahad@mirqam.sa",
+      "phone": "+966 55 333 4455",
+      "commissionRate": 500,
+      "avatar": "🚀",
+      "isOfficial": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-101",
+      "title": "مراجعة عقود 5 عملاء جدد مع القسم المالي",
+      "titleEn": "Review contracts for 5 new onboarded clients with finance",
+      "assignedTo": "emp-3",
+      "priority": "urgent",
+      "status": "in_progress",
+      "dueDate": "2026-10-18",
+      "createdAt": "2026-10-14"
+    },
+    {
+      "id": "task-102",
+      "title": "تطوير صفحة الهبوط والحملة الترويجية لقطاع التجزئة",
+      "titleEn": "Develop retail landing page and promotional campaign",
+      "assignedTo": "emp-2",
+      "priority": "medium",
+      "status": "in_progress",
+      "dueDate": "2026-10-20",
+      "createdAt": "2026-10-13"
+    },
+    {
+      "id": "task-103",
+      "title": "التواصل مع 15 متجر مستهدف في الرياض",
+      "titleEn": "Outreach to 15 targeted retail stores in Riyadh",
+      "assignedTo": "sales-1",
+      "priority": "urgent",
+      "status": "todo",
+      "dueDate": "2026-10-17",
+      "createdAt": "2026-10-15"
+    },
+    {
+      "id": "task-104",
+      "title": "إغلاق الصفقة مع سلسلة متاجر الواحة",
+      "titleEn": "Close package deal with Al-Waha Store Chain",
+      "assignedTo": "sales-2",
+      "priority": "urgent",
+      "status": "in_progress",
+      "dueDate": "2026-10-16",
+      "createdAt": "2026-10-14"
+    },
+    {
+      "id": "task-105",
+      "title": "اعتماد خطة التوسع والتقرير المالي الأسبوعي",
+      "titleEn": "Approve weekly expansion roadmap and financial statement",
+      "assignedTo": "emp-1",
+      "priority": "normal",
+      "status": "completed",
+      "dueDate": "2026-10-15",
+      "createdAt": "2026-10-12"
+    }
+  ],
+  "sales": [
+    {
+      "id": "sale-201",
+      "clientName": "متجر دار الأناقة",
+      "clientNameEn": "Dar Al-Anaqah Store",
+      "contactPhone": "+966 50 999 1122",
+      "salesRepId": "sales-1",
+      "packageValue": 4500,
+      "commissionAmount": 500,
+      "status": "paid",
+      "notes": "تم توقيع العقد وتسديد الفاتورة وصرف العمولة للمسوق",
+      "date": "2026-10-10"
+    },
+    {
+      "id": "sale-202",
+      "clientName": "سوبرماركت الرائد",
+      "clientNameEn": "Al-Raed Supermarket",
+      "contactPhone": "+966 50 888 2233",
+      "salesRepId": "sales-1",
+      "packageValue": 6000,
+      "commissionAmount": 600,
+      "status": "paid",
+      "notes": "باقة سنوية متكاملة",
+      "date": "2026-10-11"
+    },
+    {
+      "id": "sale-203",
+      "clientName": "مقهى البن الراقي",
+      "clientNameEn": "Al-Bunn Boutique Cafe",
+      "contactPhone": "+966 50 777 3344",
+      "salesRepId": "sales-2",
+      "packageValue": 3500,
+      "commissionAmount": 500,
+      "status": "approved",
+      "notes": "تم اعتماد السداد، جاهزة لصرف العمولة في الدفعة القادمة",
+      "date": "2026-10-13"
+    },
+    {
+      "id": "sale-204",
+      "clientName": "مؤسسة أفق التقنية",
+      "clientNameEn": "Ofuq Tech Est.",
+      "contactPhone": "+966 50 666 4455",
+      "salesRepId": "sales-2",
+      "packageValue": 5000,
+      "commissionAmount": 500,
+      "status": "paid",
+      "notes": "تم الصرف بنجاح",
+      "date": "2026-10-12"
+    },
+    {
+      "id": "sale-205",
+      "clientName": "معارض صدى الأثاث",
+      "clientNameEn": "Sada Furniture Showrooms",
+      "contactPhone": "+966 50 555 5566",
+      "salesRepId": "sales-3",
+      "packageValue": 7500,
+      "commissionAmount": 750,
+      "status": "pending",
+      "notes": "العميل بانتظار تفعيل الحساب لإتمام التحويل البنكي",
+      "date": "2026-10-14"
+    }
+  ]
+}

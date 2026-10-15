@@ -17,7 +17,7 @@ import {
 export default function Header() {
   const { locale, toggleLanguage, t, isRtl } = useLanguage();
   const { theme, toggleTheme, isDark } = useTheme();
-  const { setActiveModal, meetingState, localUser } = useMeeting();
+  const { setActiveModal, meetingState, localUser, returnHome } = useMeeting();
   const [timeStr, setTimeStr] = useState('');
 
   useEffect(() => {
@@ -64,6 +64,16 @@ export default function Header() {
 
       {/* Clock & Action Controls */}
       <div className="flex items-center gap-2 sm:gap-4">
+        {/* Return to Workspace Button */}
+        <button
+          onClick={returnHome}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-mirqam-teal/15 hover:bg-mirqam-teal/25 text-mirqam-teal text-xs font-bold border border-mirqam-teal/30 transition-all hover:scale-[1.02]"
+          title={locale === 'ar' ? 'الرجوع إلى لوحة أعمال مرقام' : 'Return to Mirqam Workspace'}
+        >
+          <span>🏢</span>
+          <span>{locale === 'ar' ? 'لوحة الأعمال' : 'Workspace'}</span>
+        </button>
+
         {/* Live Saudi Time */}
         <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100/80 dark:bg-mirqam-navy-soft/60 border border-slate-200/60 dark:border-slate-700/60 text-xs text-slate-600 dark:text-slate-300">
           <Clock className="w-3.5 h-3.5 text-mirqam-teal" />

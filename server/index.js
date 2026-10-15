@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import * as db from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,12 +66,106 @@ function getOrCreateRoom(roomId) {
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    service: 'Mirqam Meet',
-    version: '1.0.0',
+    service: 'Mirqam Workspace & Meet',
+    version: '2.0.0',
     company: 'Mirqam Company Commercial (شركة مرقام التجارية)',
     cr: '7055011105',
     activeRooms: rooms.size
   });
+});
+
+app.get('/api/workspace', (req, res) => {
+  try {
+    const data = db.getWorkspace();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/workspace/direction', (req, res) => {
+  try {
+    const updated = db.updateCompanyDirection(req.body);
+    io.emit('workspace-updated', updated);
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Tasks Endpoints
+app.post('/api/tasks', (req, res) => {
+  try {
+    const result = db.createTask(req.body);
+    io.emit('workspace-updated', result.workspace);
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch('/api/tasks/:id', (req, res) => {
+  try {
+    const result = db.updateTask(req.params.id, req.body);
+    if (!result) return res.status(404).json({ error: 'Task not found' });
+    io.emit('workspace-updated', result.workspace);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/tasks/:id', (req, res) => {
+  try {
+    const updatedWorkspace = db.deleteTask(req.params.id);
+    io.emit('workspace-updated', updatedWorkspace);
+    res.json({ success: true, workspace: updatedWorkspace });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Sales Endpoints
+app.post('/api/sales', (req, res) => {
+  try {
+    const result = db.createSale(req.body);
+    io.emit('workspace-updated', result.workspace);
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch('/api/sales/:id', (req, res) => {
+  try {
+    const result = db.updateSale(req.params.id, req.body);
+    if (!result) return res.status(404).json({ error: 'Sale record not found' });
+    io.emit('workspace-updated', result.workspace);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/sales/:id', (req, res) => {
+  try {
+    const updatedWorkspace = db.deleteSale(req.params.id);
+    io.emit('workspace-updated', updatedWorkspace);
+    res.json({ success: true, workspace: updatedWorkspace });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Team Member Endpoint
+app.post('/api/team', (req, res) => {
+  try {
+    const result = db.addTeamMember(req.body);
+    io.emit('workspace-updated', result.workspace);
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/api/room/:roomId', (req, res) => {

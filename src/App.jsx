@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
 import { ThemeProvider } from './context/ThemeContext';
-import { LanguageProvider, useLanguage } from './context/LanguageContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { MeetingProvider, useMeeting } from './context/MeetingContext';
+import { WorkspaceProvider } from './context/WorkspaceContext';
+
 import Header from './components/Header';
-import LandingPage from './components/LandingPage';
+import DashboardLayout from './components/Dashboard/DashboardLayout';
 import GreenRoom from './components/GreenRoom';
 import MeetingRoom from './components/MeetingRoom';
 import PostMeetingView from './components/PostMeetingView';
@@ -75,12 +77,12 @@ function MainApp() {
 
   return (
     <div className="min-h-screen flex flex-col transition-colors selection:bg-mirqam-teal selection:text-white">
-      {/* Top Header shown on landing, greenroom, and post-meeting */}
-      {meetingState !== 'inmeeting' && <Header />}
+      {/* Top Header shown only on greenroom and post-meeting (DashboardLayout has its own corporate header) */}
+      {(meetingState === 'greenroom' || meetingState === 'left') && <Header />}
 
       {/* Main Views */}
       <main className="flex-1 flex flex-col">
-        {meetingState === 'landing' && <LandingPage />}
+        {meetingState === 'landing' && <DashboardLayout />}
         {meetingState === 'greenroom' && <GreenRoom />}
         {meetingState === 'inmeeting' && <MeetingRoom />}
         {meetingState === 'left' && <PostMeetingView />}
@@ -101,7 +103,9 @@ export default function App() {
     <ThemeProvider>
       <LanguageProvider>
         <MeetingProvider>
-          <MainApp />
+          <WorkspaceProvider>
+            <MainApp />
+          </WorkspaceProvider>
         </MeetingProvider>
       </LanguageProvider>
     </ThemeProvider>
