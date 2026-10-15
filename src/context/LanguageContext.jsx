@@ -207,7 +207,9 @@ export const translations = {
 
 export function LanguageProvider({ children }) {
   const [locale, setLocale] = useState(() => {
-    return localStorage.getItem('mirqam_lang') || 'ar'; // Default Arabic-first as per company theme
+    // Default Arabic-first as requested
+    const saved = localStorage.getItem('mirqam_lang');
+    return saved === 'en' ? 'en' : 'ar';
   });
 
   useEffect(() => {
@@ -217,15 +219,31 @@ export function LanguageProvider({ children }) {
   }, [locale]);
 
   const toggleLanguage = () => {
-    setLocale(prev => (prev === 'ar' ? 'en' : 'ar'));
+    setLocale(prev => {
+      const next = prev === 'ar' ? 'en' : 'ar';
+      localStorage.setItem('mirqam_lang', next);
+      document.documentElement.lang = next;
+      document.documentElement.dir = next === 'ar' ? 'rtl' : 'ltr';
+      return next;
+    });
   };
 
   const t = (key) => {
     return (translations[locale] && translations[locale][key]) || (translations['ar'] && translations['ar'][key]) || key;
   };
 
+  const isAr = locale === 'ar';
+
   return (
-    <LanguageContext.Provider value={{ locale, setLocale, toggleLanguage, t, isRtl: locale === 'ar' }}>
+    <LanguageContext.Provider value={{ 
+      locale, 
+      language: locale, 
+      setLocale, 
+      toggleLanguage, 
+      t, 
+      isRtl: isAr,
+      isAr 
+    }}>
       {children}
     </LanguageContext.Provider>
   );
