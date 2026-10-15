@@ -7,13 +7,8 @@ import {
   Pin, 
   PinOff, 
   Hand, 
-  Maximize, 
-  MoreVertical, 
-  Volume2, 
-  ShieldCheck, 
-  Sparkles,
-  Monitor,
-  X
+  Monitor, 
+  Volume2
 } from 'lucide-react';
 import MeetingControls from './MeetingControls';
 import ParticipantsPanel from './SidePanels/ParticipantsPanel';
@@ -22,12 +17,139 @@ import MeetingInfoPanel from './SidePanels/MeetingInfoPanel';
 import PollsPanel from './SidePanels/PollsPanel';
 import WhiteboardPanel from './SidePanels/WhiteboardPanel';
 
+// Dedicated Remote Participant Video & Audio Player
+function RemoteParticipantTile({
+  peer,
+  stream,
+  isCompact = false,
+  isPinned = false,
+  onPin,
+  isSpeaking = false,
+  t
+}) {
+  const videoRef = useRef(null);
+  const audioRef = useRef(null);
+
+  // Attach and play remote video track
+  useEffect(() => {
+    if (videoRef.current) {
+      if (stream) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play().catch(e => console.warn('Remote video play warning:', e));
+      } else {
+        videoRef.current.srcObject = null;
+      }
+    }
+  }, [stream]);
+
+  // Attach and play remote audio track
+  useEffect(() => {
+    if (audioRef.current) {
+      if (stream) {
+        audioRef.current.srcObject = stream;
+        audioRef.current.play().catch(e => console.warn('Remote audio play warning:', e));
+      } else {
+        audioRef.current.srcObject = null;
+      }
+    }
+  }, [stream]);
+
+  const hasStream = !!stream;
+  const isVideoOn = hasStream ? peer.video !== false : !!peer.video;
+
+  return (
+    <div
+      className={`relative rounded-2xl overflow-hidden bg-[#132235] border transition-all duration-200 flex items-center justify-center group ${
+        isCompact ? 'w-full h-36 shrink-0' : 'w-full h-full min-h-[180px]'
+      } ${
+        isSpeaking 
+          ? 'border-mirqam-teal shadow-[0_0_20px_rgba(35,148,154,0.5)] ring-2 ring-mirqam-teal' 
+          : 'border-slate-800 hover:border-slate-700'
+      }`}
+    >
+      {/* Remote Audio Track: NOT muted, plays sound directly to speaker */}
+      {hasStream && (
+        <audio ref={audioRef} autoPlay playsInline />
+      )}
+
+      {/* Real WebRTC Video Feed */}
+      {hasStream && (
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          className={`w-full h-full object-cover ${isVideoOn ? 'block' : 'hidden'}`}
+        />
+      )}
+
+      {/* Fallback Avatar or Demo Video */}
+      {(!hasStream || !isVideoOn) && (
+        peer.videoUrl ? (
+          <video
+            src={peer.videoUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="flex flex-col items-center gap-2">
+            {peer.avatar ? (
+              <img 
+                src={peer.avatar} 
+                alt={peer.name} 
+                className={`${isCompact ? 'w-12 h-12' : 'w-20 h-20'} rounded-full object-cover border-2 border-slate-700 shadow-lg`}
+              />
+            ) : (
+              <div className={`${isCompact ? 'w-12 h-12 text-sm' : 'w-20 h-20 text-2xl'} rounded-full bg-gradient-to-br from-indigo-600 to-mirqam-navy flex items-center justify-center text-white font-bold border-2 border-indigo-400/40 shadow-lg`}>
+                {peer.name.charAt(0)}
+              </div>
+            )}
+            <span className="text-[11px] text-slate-400">{t('cameraOff')}</span>
+          </div>
+        )
+      )}
+
+      {/* Hand Raise Badge */}
+      {peer.handRaised && (
+        <div className="absolute top-2.5 end-2.5 p-1.5 rounded-full bg-amber-500 text-white shadow-lg hand-active z-10" title={t('handRaised')}>
+          <Hand className="w-3.5 h-3.5" />
+        </div>
+      )}
+
+      {/* Pin Tile Button */}
+      <button
+        onClick={() => onPin(isPinned ? null : peer.id)}
+        className="absolute top-2.5 start-2.5 p-1.5 rounded-lg bg-black/60 text-white hover:bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        title={isPinned ? t('unpinTile') : t('pinTile')}
+      >
+        {isPinned ? <PinOff className="w-3.5 h-3.5 text-mirqam-teal" /> : <Pin className="w-3.5 h-3.5" />}
+      </button>
+
+      {/* Bottom Name & Mic Tag */}
+      <div className="absolute bottom-2.5 start-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-[11px] font-medium z-10">
+        <span className="truncate max-w-[120px]">{peer.name}</span>
+        {peer.audio === false ? (
+          <MicOff className="w-3 h-3 text-rose-400" />
+        ) : (
+          <div className="flex items-center gap-0.5">
+            <span className="w-1 h-2 bg-emerald-400 rounded-full" />
+            <span className="w-1 h-3 bg-emerald-400 rounded-full" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function MeetingRoom() {
-  const { t, isRtl } = useLanguage();
+  const { t } = useLanguage();
   const { 
     localUser, 
     localStream, 
     screenStream,
+    remoteStreams,
     participants, 
     activeSidePanel, 
     pinnedParticipantId, 
@@ -42,14 +164,31 @@ export default function MeetingRoom() {
   const localVideoRef = useRef(null);
   const screenVideoRef = useRef(null);
 
-  // If user entered with present=true from GreenRoom, trigger browser screen picker once
+  // Trigger screen share if user entered with present=true from GreenRoom
   useEffect(() => {
     if (localUser.isPresenting && !screenStream) {
       toggleScreenShare();
     }
   }, []);
 
-  // Bind local stream
+  // Unlock browser audio autoplay policy on user interaction
+  useEffect(() => {
+    const unlockAudio = () => {
+      document.querySelectorAll('audio, video').forEach(media => {
+        if (media.paused && media.srcObject) {
+          media.play().catch(() => {});
+        }
+      });
+    };
+    window.addEventListener('click', unlockAudio);
+    window.addEventListener('touchstart', unlockAudio);
+    return () => {
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+    };
+  }, []);
+
+  // Bind local stream to local video tag
   useEffect(() => {
     if (localVideoRef.current && localStream) {
       localVideoRef.current.srcObject = localStream;
@@ -66,89 +205,6 @@ export default function MeetingRoom() {
   const hasSpotlight = (localUser.isPresenting && screenStream) || pinnedParticipantId;
   const isLocalPinned = pinnedParticipantId === 'local';
   const pinnedRemote = participants.find(p => p.id === pinnedParticipantId);
-
-  // Participant Tile Renderer
-  const renderParticipantTile = (peer, isCompact = false) => {
-    const isPinned = pinnedParticipantId === peer.id;
-    const isSpeaking = activeSpeakerId === peer.id;
-
-    return (
-      <div
-        key={peer.id}
-        className={`relative rounded-2xl overflow-hidden bg-[#132235] border transition-all duration-200 flex items-center justify-center group ${
-          isCompact ? 'w-full h-36 shrink-0' : 'w-full h-full min-h-[180px]'
-        } ${
-          isSpeaking 
-            ? 'border-mirqam-teal shadow-[0_0_20px_rgba(35,148,154,0.5)] ring-2 ring-mirqam-teal' 
-            : 'border-slate-800 hover:border-slate-700'
-        }`}
-      >
-        {peer.video ? (
-          peer.videoUrl ? (
-            <video
-              src={peer.videoUrl}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full relative overflow-hidden flex items-center justify-center">
-              <img 
-                src={peer.avatar} 
-                alt={peer.name} 
-                className="w-full h-full object-cover filter brightness-95" 
-              />
-            </div>
-          )
-        ) : (
-          <div className="flex flex-col items-center gap-2">
-            {peer.avatar ? (
-              <img 
-                src={peer.avatar} 
-                alt={peer.name} 
-                className={`${isCompact ? 'w-12 h-12' : 'w-20 h-20'} rounded-full object-cover border-2 border-slate-700 shadow-lg`}
-              />
-            ) : (
-              <div className={`${isCompact ? 'w-12 h-12 text-sm' : 'w-20 h-20 text-2xl'} rounded-full bg-gradient-to-br from-indigo-600 to-mirqam-navy flex items-center justify-center text-white font-bold border-2 border-indigo-400/40 shadow-lg`}>
-                {peer.name.charAt(0)}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Hand Raise Badge */}
-        {peer.handRaised && (
-          <div className="absolute top-2.5 end-2.5 p-1.5 rounded-full bg-amber-500 text-white shadow-lg hand-active z-10" title={t('handRaised')}>
-            <Hand className="w-3.5 h-3.5" />
-          </div>
-        )}
-
-        {/* Pin Tile Button */}
-        <button
-          onClick={() => setPinnedParticipantId(isPinned ? null : peer.id)}
-          className="absolute top-2.5 start-2.5 p-1.5 rounded-lg bg-black/60 text-white hover:bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-          title={isPinned ? t('unpinTile') : t('pinTile')}
-        >
-          {isPinned ? <PinOff className="w-3.5 h-3.5 text-mirqam-teal" /> : <Pin className="w-3.5 h-3.5" />}
-        </button>
-
-        {/* Bottom Name & Mic Tag */}
-        <div className="absolute bottom-2.5 start-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-[11px] font-medium z-10">
-          <span className="truncate max-w-[120px]">{peer.name}</span>
-          {!peer.audio ? (
-            <MicOff className="w-3 h-3 text-rose-400" />
-          ) : (
-            <div className="flex items-center gap-0.5">
-              <span className="w-1 h-2 bg-emerald-400 rounded-full" />
-              <span className="w-1 h-3 bg-emerald-400 rounded-full" />
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
 
   // Local User Tile Renderer
   const renderLocalTile = (isCompact = false) => {
@@ -175,6 +231,7 @@ export default function MeetingRoom() {
             <div className={`${isCompact ? 'w-12 h-12 text-sm' : 'w-20 h-20 text-2xl'} rounded-full bg-gradient-to-br from-mirqam-teal to-mirqam-navy flex items-center justify-center text-white font-bold border-2 border-mirqam-teal/40 shadow-lg`}>
               {localUser.name ? localUser.name.charAt(0) : 'أ'}
             </div>
+            <span className="text-[11px] text-slate-400">{t('cameraOff')}</span>
           </div>
         )}
 
@@ -210,7 +267,7 @@ export default function MeetingRoom() {
     );
   };
 
-  // Normal Grid Class calculation
+  // Normal Equal Grid Class calculation
   const totalCount = participants.length + 1;
   const getGridClasses = () => {
     if (totalCount === 1) return 'grid grid-cols-1 max-w-4xl w-full mx-auto h-full max-h-[75vh]';
@@ -283,7 +340,15 @@ export default function MeetingRoom() {
                 ) : isLocalPinned ? (
                   renderLocalTile(false)
                 ) : pinnedRemote ? (
-                  renderParticipantTile(pinnedRemote, false)
+                  <RemoteParticipantTile
+                    peer={pinnedRemote}
+                    stream={remoteStreams[pinnedRemote.id]}
+                    isCompact={false}
+                    isPinned={true}
+                    onPin={setPinnedParticipantId}
+                    isSpeaking={activeSpeakerId === pinnedRemote.id}
+                    t={t}
+                  />
                 ) : null}
               </div>
 
@@ -295,7 +360,18 @@ export default function MeetingRoom() {
                 {/* Render remote participants in strip */}
                 {participants
                   .filter(p => p.id !== pinnedParticipantId)
-                  .map(p => renderParticipantTile(p, true))}
+                  .map(p => (
+                    <RemoteParticipantTile
+                      key={p.id}
+                      peer={p}
+                      stream={remoteStreams[p.id]}
+                      isCompact={true}
+                      isPinned={false}
+                      onPin={setPinnedParticipantId}
+                      isSpeaking={activeSpeakerId === p.id}
+                      t={t}
+                    />
+                  ))}
               </div>
 
             </div>
@@ -303,7 +379,18 @@ export default function MeetingRoom() {
             /* STANDARD EQUAL GRID LAYOUT */
             <div className={`flex-1 ${getGridClasses()} items-center justify-center overflow-y-auto`}>
               {renderLocalTile(false)}
-              {participants.map(p => renderParticipantTile(p, false))}
+              {participants.map(p => (
+                <RemoteParticipantTile
+                  key={p.id}
+                  peer={p}
+                  stream={remoteStreams[p.id]}
+                  isCompact={false}
+                  isPinned={pinnedParticipantId === p.id}
+                  onPin={setPinnedParticipantId}
+                  isSpeaking={activeSpeakerId === p.id}
+                  t={t}
+                />
+              ))}
             </div>
           )}
 

@@ -64,6 +64,7 @@ export function MeetingProvider({ children }) {
   // Media Streams & Devices
   const [localStream, setLocalStream] = useState(null);
   const [screenStream, setScreenStream] = useState(null);
+  const [remoteStreams, setRemoteStreams] = useState({}); // { [peerId]: MediaStream }
   const [audioVolume, setAudioVolume] = useState(0);
   const [selectedBackground, setSelectedBackground] = useState('none');
   const [devices, setDevices] = useState({ audioInputs: [], videoInputs: [], audioOutputs: [] });
@@ -120,7 +121,8 @@ export function MeetingProvider({ children }) {
 
   // Refs
   const socketRef = useRef(null);
-  const peerConnectionsRef = useRef(new Map());
+  const peerConnectionsRef = useRef(new Map()); // Map<peerId, RTCPeerConnection>
+  const iceCandidateQueueRef = useRef(new Map()); // Map<peerId, RTCIceCandidate[]>
   const localStreamRef = useRef(null);
   const backgroundProcessorRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -141,7 +143,81 @@ export function MeetingProvider({ children }) {
     localStorage.setItem('mirqam_scheduled_meetings', JSON.stringify(scheduledMeetings));
   }, [scheduledMeetings]);
 
-  // Connect Socket.IO
+  // WebRTC STUN Servers for real peer-to-peer NAT traversal
+  const ICE_SERVERS = {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
+      { urls: 'stun:stun4.l.google.com:19302' }
+    ]
+  };
+
+  // Helper to create or retrieve an RTCPeerConnection for a remote peer
+  const createPeerConnection = useCallback((peerId, socket) => {
+    if (peerConnectionsRef.current.has(peerId)) {
+      return peerConnectionsRef.current.get(peerId);
+    }
+
+    console.log(`[WebRTC] Creating RTCPeerConnection for peer ${peerId}`);
+    const pc = new RTCPeerConnection(ICE_SERVERS);
+    peerConnectionsRef.current.set(peerId, pc);
+
+    // Attach local stream tracks (microphone & camera)
+    const activeStream = screenStream || localStreamRef.current;
+    if (activeStream) {
+      activeStream.getTracks().forEach((track) => {
+        try {
+          pc.addTrack(track, activeStream);
+          console.log(`[WebRTC] Added local ${track.kind} track to peer ${peerId}`);
+        } catch (e) {
+          console.warn('[WebRTC] addTrack warning:', e);
+        }
+      });
+    }
+
+    // Handle local ICE candidates and emit to peer
+    pc.onicecandidate = (event) => {
+      if (event.candidate && (socket || socketRef.current)) {
+        const s = socket || socketRef.current;
+        s.emit('signal-ice', {
+          to: peerId,
+          candidate: event.candidate
+        });
+      }
+    };
+
+    // Handle incoming remote tracks (audio & video)
+    pc.ontrack = (event) => {
+      console.log(`[WebRTC] Received remote ${event.track.kind} track from peer ${peerId}`);
+      let stream = event.streams && event.streams[0];
+      if (!stream) {
+        stream = new MediaStream([event.track]);
+      }
+      setRemoteStreams((prev) => {
+        const existing = prev[peerId];
+        if (existing) {
+          if (!existing.getTracks().some(t => t.id === event.track.id)) {
+            existing.addTrack(event.track);
+          }
+          return { ...prev, [peerId]: existing };
+        }
+        return {
+          ...prev,
+          [peerId]: stream
+        };
+      });
+    };
+
+    pc.onconnectionstatechange = () => {
+      console.log(`[WebRTC] Peer ${peerId} connection state:`, pc.connectionState);
+    };
+
+    return pc;
+  }, [screenStream]);
+
+  // Connect Socket.IO & Register WebRTC Handlers
   useEffect(() => {
     const socket = io(window.location.origin, {
       transports: ['websocket', 'polling'],
@@ -157,27 +233,124 @@ export function MeetingProvider({ children }) {
       // Combine remote real participants with our state
       const serverParticipants = (data.participants || []).filter(p => p.id !== socket.id);
       setParticipants(prev => {
-        // preserve simulated peers if enabled
         const sim = prev.filter(p => p.id.startsWith('sim-'));
         return [...serverParticipants, ...sim];
       });
     });
 
-    socket.on('user-joined', ({ participant }) => {
+    // 1. Existing user sees someone join -> Initiates WebRTC Offer
+    socket.on('user-joined', async ({ participant }) => {
       sounds.playJoinSound();
       setParticipants(prev => {
         if (prev.some(p => p.id === participant.id)) return prev;
         return [...prev, participant];
       });
+
+      try {
+        const pc = createPeerConnection(participant.id, socket);
+        const offer = await pc.createOffer({
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: true
+        });
+        await pc.setLocalDescription(offer);
+        socket.emit('signal-offer', {
+          to: participant.id,
+          offer
+        });
+        console.log(`[WebRTC] Sent offer to newcomer ${participant.name} (${participant.id})`);
+      } catch (err) {
+        console.error(`[WebRTC] Failed to send offer to ${participant.id}:`, err);
+      }
     });
 
+    // 2. Newcomer receives Offer -> Sets remote desc, creates Answer
+    socket.on('signal-offer', async ({ from, offer }) => {
+      console.log(`[WebRTC] Received signal-offer from ${from}`);
+      try {
+        const pc = createPeerConnection(from, socket);
+        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+
+        // Flush queued candidates
+        const queued = iceCandidateQueueRef.current.get(from) || [];
+        for (const cand of queued) {
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(cand));
+          } catch (e) {
+            console.warn('[WebRTC] addIceCandidate queued error:', e);
+          }
+        }
+        iceCandidateQueueRef.current.delete(from);
+
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        socket.emit('signal-answer', {
+          to: from,
+          answer
+        });
+        console.log(`[WebRTC] Sent signal-answer to ${from}`);
+      } catch (err) {
+        console.error(`[WebRTC] Failed to handle offer from ${from}:`, err);
+      }
+    });
+
+    // 3. Offer creator receives Answer -> Sets remote desc
+    socket.on('signal-answer', async ({ from, answer }) => {
+      console.log(`[WebRTC] Received signal-answer from ${from}`);
+      try {
+        const pc = peerConnectionsRef.current.get(from);
+        if (pc) {
+          await pc.setRemoteDescription(new RTCSessionDescription(answer));
+
+          // Flush queued candidates
+          const queued = iceCandidateQueueRef.current.get(from) || [];
+          for (const cand of queued) {
+            try {
+              await pc.addIceCandidate(new RTCIceCandidate(cand));
+            } catch (e) {
+              console.warn('[WebRTC] addIceCandidate queued error:', e);
+            }
+          }
+          iceCandidateQueueRef.current.delete(from);
+          console.log(`[WebRTC] WebRTC handshake complete with ${from}`);
+        }
+      } catch (err) {
+        console.error(`[WebRTC] Failed to handle answer from ${from}:`, err);
+      }
+    });
+
+    // 4. ICE candidate exchange
+    socket.on('signal-ice', async ({ from, candidate }) => {
+      if (!candidate) return;
+      const pc = peerConnectionsRef.current.get(from);
+      if (pc && pc.remoteDescription && pc.remoteDescription.type) {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (err) {
+          console.warn('[WebRTC] Error adding ICE candidate:', err);
+        }
+      } else {
+        const queued = iceCandidateQueueRef.current.get(from) || [];
+        queued.push(candidate);
+        iceCandidateQueueRef.current.set(from, queued);
+      }
+    });
+
+    // 5. User leaves room -> Cleanup peer connection and stream
     socket.on('user-left', ({ userId, userName }) => {
       sounds.playLeaveSound();
       setParticipants(prev => prev.filter(p => p.id !== userId));
       if (peerConnectionsRef.current.has(userId)) {
-        peerConnectionsRef.current.get(userId).close();
+        try {
+          peerConnectionsRef.current.get(userId).close();
+        } catch (e) {}
         peerConnectionsRef.current.delete(userId);
       }
+      setRemoteStreams((prev) => {
+        const next = { ...prev };
+        delete next[userId];
+        return next;
+      });
+      iceCandidateQueueRef.current.delete(userId);
     });
 
     socket.on('user-media-toggled', ({ userId, type, enabled }) => {
@@ -248,7 +421,7 @@ export function MeetingProvider({ children }) {
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [createPeerConnection]);
 
   // Enumerate Media Devices
   const getDevices = useCallback(async () => {
@@ -719,6 +892,16 @@ export function MeetingProvider({ children }) {
   }, []);
 
   const leaveMeeting = useCallback(() => {
+    // Close all WebRTC peer connections
+    peerConnectionsRef.current.forEach((pc) => {
+      try {
+        pc.close();
+      } catch (e) {}
+    });
+    peerConnectionsRef.current.clear();
+    setRemoteStreams({});
+    iceCandidateQueueRef.current.clear();
+
     if (isRecording) {
       stopRecording();
     }
@@ -760,6 +943,7 @@ export function MeetingProvider({ children }) {
         setLocalUser,
         localStream,
         screenStream,
+        remoteStreams,
         audioVolume,
         participants,
         messages,
